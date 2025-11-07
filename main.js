@@ -179,38 +179,63 @@ function getFrequency(){
 measureBtn.addEventListener('click', async ()=>{
   statusEl.textContent = `Status: ${LANG[currentLang].statusRecording}`;
   await initMic();
-  samples=[];
+  samples = [];
+
   const duration = parseFloat(document.getElementById('duration').value) || 3;
   const calibration = parseFloat(document.getElementById('calibration').value) || 1.0;
   const materialDensity = parseFloat(materialSelect.value) || 7850;
   const length = parseFloat(document.getElementById('length').value) / 1000;
   const diameter = parseFloat(document.getElementById('diameter').value) / 1000;
-  const area = Math.PI*(diameter/2)**2;
+  const area = Math.PI * (diameter / 2) ** 2;
 
   const interval = 100;
-  const iterations = Math.floor(duration*1000/interval);
+  const iterations = Math.floor((duration * 1000) / interval);
 
-  for(let i=0;i<iterations;i++){
-    samples.push(getFrequency());
-    await new Promise(r=>setTimeout(r,interval));
+  for (let i = 0; i < iterations; i++) {
+    const f = getFrequency();
+    if (f && isFinite(f) && f > 20 && f < 10000) samples.push(f);
+    await new Promise(r => setTimeout(r, interval));
   }
 
-  const freq = samples.reduce((a,b)=>a+b,0)/samples.length;
-  const stdev = Math.sqrt(samples.map(x=>(x-freq)**2).reduce((a,b)=>a+b,0)/samples.length);
-  const tension = materialDensity*area*(2*length*freq)**2*calibration;
+  // --- Filter noisy samples ---
+  const good = samples.filter(f => f && isFinite(f) && f > 20 && f < 10000);
+  if (good.length < 3) {
+    alert(LANG[currentLang].noSignal || 'No clear signal detected. Try again closer to the spoke.');
+    if (mediaStream) mediaStream.getTracks().forEach(t => t.stop());
+    if (audioContext) audioContext.close();
+    audioContext = null;
+    mediaStream = null;
+    analyser = null;
+    statusEl.textContent = `Status: ${LANG[currentLang].statusReady}`;
+    return;
+  }
 
-  document.getElementById('freq').textContent = freq.toFixed(1)+' Hz';
-  document.getElementById('tension').textContent = tension.toFixed(0)+' kgf';
-  document.getElementById('samples').textContent = samples.length;
+  good.sort((a, b) => a - b);
+  const trim = Math.floor(good.length * 0.15);
+  const trimmed = good.slice(trim, good.length - trim || undefined);
+  const freq = trimmed.reduce((a, b) => a + b, 0) / trimmed.length;
+  const variance = trimmed.reduce((a, x) => a + (x - freq) ** 2, 0) / trimmed.length;
+  const stdev = Math.sqrt(variance);
+
+  // --- Physical calculation ---
+  const tensionN = materialDensity * area * Math.pow(2 * length * freq, 2) * calibration; // Newtons
+  const tensionKgf = tensionN / 9.80665; // Convert to kgf
+
+  document.getElementById('freq').textContent = freq.toFixed(1) + ' Hz';
+  document.getElementById('tension').textContent = tensionKgf.toFixed(1) + ' kgf';
+  document.getElementById('samples').textContent = good.length;
   document.getElementById('stdev').textContent = stdev.toFixed(1);
 
-  mediaStream.getTracks().forEach(track => track.stop());
-  audioContext.close();
-  audioContext = null;
+  // --- Close mic cleanly ---
+  if (mediaStream) mediaStream.getTracks().forEach(track => track.stop());
+  if (audioContext) {
+    audioContext.close();
+    audioContext = null;
+  }
   mediaStream = null;
   analyser = null;
 
-  saveBtn.disabled=false;
+  saveBtn.disabled = false;
   statusEl.textContent = `Status: ${LANG[currentLang].statusReady}`;
 });
 
