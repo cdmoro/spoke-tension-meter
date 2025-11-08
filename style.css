@@ -150,7 +150,7 @@ th,
 td {
     padding: 6px;
     border-bottom: 1px solid #f0f1f4;
-    text-align: center;
+    text-align: start;
     font-size: 0.85rem;
 }
 
@@ -243,4 +243,29 @@ th {
 
 .preset-layout button {
     text-wrap: nowrap;
+}
+
+.card h2:first-child {
+    margin-top: 0;
+}
+
+.card h2 {
+    margin-bottom: .2rem;
+}
+
+.hint {
+    color: var(--muted);
+    font-size: 0.85rem;
+    margin-top: .2rem;
+}
+
+button.deleteRowBtn {
+    border: none;
+    padding: 5px 6px 3px;
+}
+
+button[disabled] {
+    background: #6c757d;
+    pointer-events: none;
+    cursor: default;
 }

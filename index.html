@@ -21,18 +21,24 @@
                     <option value="en">English</option>
                     <option value="es">Español</option>
                 </select>
-                <button id="darkModeToggle">🌙</button>
+                <button id="darkModeToggle">
+                    <svg width="16" height="16" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path
+                            d="M12 22C17.5228 22 22 17.5228 22 12C22 11.5373 21.3065 11.4608 21.0672 11.8568C19.9289 13.7406 17.8615 15 15.5 15C11.9101 15 9 12.0899 9 8.5C9 6.13845 10.2594 4.07105 12.1432 2.93276C12.5392 2.69347 12.4627 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z"
+                            fill="currentColor"></path>
+                    </svg>
+                </button>
             </div>
         </header>
 
         <div class="card">
             <div class="grid">
                 <div>
-                    <label for="length">Length (mm)</label>
+                    <label for="length" data-string="length">Length (mm)</label>
                     <input id="length" type="number" value="127" min="50" step="1">
                 </div>
                 <div>
-                    <label for="diameter">Diameter (mm)</label>
+                    <label for="diameter" data-string="diameter">Diameter (mm)</label>
                     <input id="diameter" type="number" value="2.0" min="0.5" step="0.1">
                 </div>
                 <div>
@@ -40,38 +46,39 @@
                     <select id="material"></select>
                 </div>
                 <div>
-                    <label for="duration">Duration (s)</label>
-                    <input id="duration" type="number" value="3" min="0.5" step="0.5">
+                    <label for="duration" data-string="duration">Duration (s)</label>
+                    <input id="duration" type="number" value="3" min="0.5" step="0.5" max="10">
+                    <div class="hint">Min: 0.5 / Max: 10.0</div>
                 </div>
                 <div>
-                    <label for="calibration">Calibration Factor</label>
-                    <input id="calibration" type="number" value="1.0" min="0.5" step="0.01">
+                    <label for="calibration" data-string="calibration_factor">Calibration Factor</label>
+                    <input id="calibration" type="number" value="1.0" min="0.5" step="0.01" max="2">
+                    <div class="hint">Min: 0.5 / Max: 2.0</div>
                 </div>
             </div>
 
             <div class="actions">
-                    <label data-string="actions">Actions</label>
-                    <div>
-                        <button id="measureBtn" data-string="measure"></button>
-                        <!-- <button id="saveBtn" class="secondary" data-string="save" disabled></button> -->
-                    </div>
+                <label data-string="actions">Actions</label>
+                <div>
+                    <button id="measureBtn" data-string="measure"></button>
                 </div>
+            </div>
 
             <label for="presetSelect" id="presetsLabel" data-string="presets"></label>
             <div class="preset-layout">
                 <select id="presetSelect"></select>
                 <button id="savePresetBtn" class="secondary" data-string="savePreset"></button>
-                    <button id="deletePresetBtn" class="secondary" data-string="deletePreset"></button>
+                <button id="deletePresetBtn" class="secondary" data-string="deletePreset"></button>
             </div>
 
             <div class="result-row">
                 <div class="pill">
-                    <div id="freqLabel" data-string="freq"></div>
-                    <div id="freq">-- Hz</div>
-                </div>
-                <div class="pill">
                     <div id="tensionLabel" data-string="tension"></div>
                     <div id="tension">-- kgf</div>
+                </div>
+                <div class="pill">
+                    <div id="freqLabel" data-string="freq"></div>
+                    <div id="freq">-- Hz</div>
                 </div>
                 <div class="pill">
                     <div id="samplesLabel" data-string="samples"></div>
@@ -84,24 +91,26 @@
             </div>
         </div>
 
-        <div class="card d-none" id="lastMeasures">
-            <label data-string="results">Results</label>
-            <button id="exportBtn" class="secondary" data-string="export"></button>
+        <div class="card" id="history">
+            <h2 data-string="history">History</h2>
             <table>
                 <thead>
                     <tr>
-                        <th data-string="colIndex">#</th>
+                        <!-- <th data-string="colIndex">#</th> -->
                         <th data-string="colFreq">Freq (Hz)</th>
                         <th data-string="colTension">Tension (kgf)</th>
                         <th data-string="colMaterial">Material</th>
                         <th data-string="colLength">Length</th>
                         <th data-string="colDiameter">Diameter</th>
                         <th data-string="colTimestamp">Timestamp</th>
-                        <th data-string="colActions">Actions</th>
+                        <th></th>
                     </tr>
                 </thead>
-                <tbody id="tableBody"></tbody>
+                <tbody id="tableBody">
+                    <tr></tr>
+                </tbody>
             </table>
+            <button id="exportBtn" class="secondary" data-string="export"></button>
             <button id="clearBtn" class="danger" data-string="clearTable"></button>
         </div>
     </div>
