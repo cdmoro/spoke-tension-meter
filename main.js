@@ -9,7 +9,7 @@ document.documentElement.setAttribute('data-theme', darkMode);
 
 // --- Elements ---
 const measureBtn = document.getElementById('measureBtn');
-const saveBtn = document.getElementById('saveBtn');
+// const saveBtn = document.getElementById('saveBtn');
 const exportBtn = document.getElementById('exportBtn');
 const clearBtn = document.getElementById('clearBtn');
 const savePresetBtn = document.getElementById('savePresetBtn');
@@ -20,34 +20,21 @@ const statusEl = document.getElementById('status');
 const presetSelect = document.getElementById('presetSelect');
 const materialSelect = document.getElementById('material');
 
-const freqLabel = document.getElementById('freqLabel');
-const tensionLabel = document.getElementById('tensionLabel');
-const samplesLabel = document.getElementById('samplesLabel');
-const deviationLabel = document.getElementById('deviationLabel');
-const presetsLabel = document.getElementById('presetsLabel');
-
 const tableBody = document.getElementById('tableBody');
 
-// --- Materials per language ---
-const materials = {
-  en: [
-    { name: "Steel", density: 7850 },
-    { name: "Titanium", density: 4500 },
-    { name: "Aluminum", density: 2700 }
-  ],
-  es: [
-    { name: "Acero", density: 7850 },
-    { name: "Titanio", density: 4500 },
-    { name: "Aluminio", density: 2700 }
-  ]
-};
+// --- Materials density ---
+const MATERIAL_DENSITY = {
+  steel: 7858,
+  titanium: 4500,
+  aluminium: 2700
+}
 
 // --- Presets ---
 const PRESETS_KEY = 'spoke_presets';
-function loadPresets(){
+function loadPresets() {
   const stored = JSON.parse(localStorage.getItem(PRESETS_KEY) || '[]');
   presetSelect.innerHTML = '';
-  stored.forEach((p, i)=>{
+  stored.forEach((p, i) => {
     const opt = document.createElement('option');
     opt.value = i;
     opt.textContent = p.name;
@@ -58,65 +45,57 @@ function loadPresets(){
 let presets = loadPresets();
 
 // --- Language & Materials ---
-function loadMaterials(lang){
+function loadMaterials(strings) {
   materialSelect.innerHTML = '';
-  materials[lang].forEach(m => {
+
+  Object.entries(MATERIAL_DENSITY).forEach(([key, density]) => {
     const option = document.createElement('option');
-    option.value = m.density;
-    option.textContent = `${m.name} (${m.density} kg/m³)`;
+    option.value = density;
+    option.textContent = `${strings[key]} (${density} kg/m³)`;
     materialSelect.appendChild(option);
-  });
+  })
 }
 
-function setLanguage(lang){
-  measureBtn.textContent = LANG[lang].measure;
-  saveBtn.textContent = LANG[lang].save;
-  exportBtn.textContent = LANG[lang].export;
-  clearBtn.textContent = LANG[lang].clearTable;
-  savePresetBtn.textContent = LANG[lang].savePreset;
-  deletePresetBtn.textContent = LANG[lang].deletePreset;
-  freqLabel.textContent = LANG[lang].freq;
-  tensionLabel.textContent = LANG[lang].tension;
-  samplesLabel.textContent = LANG[lang].samples;
-  deviationLabel.textContent = LANG[lang].deviation;
-  presetsLabel.textContent = LANG[lang].presets;
-  document.querySelector('label[for="material"]').textContent = LANG[lang].material;
+function setLanguage(lang) {
+  const strings = LANG[lang];
 
-  // Update table headers
-  const ths = document.querySelectorAll('#tableHead th');
-  if(ths.length >= 8){
-    ths[0].textContent = LANG[lang].colIndex;
-    ths[1].textContent = LANG[lang].colFreq;
-    ths[2].textContent = LANG[lang].colTension;
-    ths[3].textContent = LANG[lang].colMaterial;
-    ths[4].textContent = LANG[lang].colLength;
-    ths[5].textContent = LANG[lang].colDiameter;
-    ths[6].textContent = LANG[lang].colTimestamp;
-    ths[7].textContent = LANG[lang].colActions;
-  }
+  document.querySelectorAll("[data-string]").forEach(el => {
+    const key = el.dataset.string;
 
-  statusEl.textContent = `Status: ${LANG[lang].statusReady}`;
-  loadMaterials(lang);
+    if (!key) {
+      return;
+    }
+
+    if (!strings[key]) {
+      console.warn(`Missing translation for key: "${key}"`);
+      return;
+    }
+
+    el.innerHTML = strings[key];
+  });
+
+  statusEl.textContent = `${strings.status}: ${strings.statusReady}`;
+  loadMaterials(strings);
   langSelect.value = lang;
 }
 
 // --- Event listeners ---
-langSelect.addEventListener('change', e=>{
+langSelect.addEventListener('change', e => {
   currentLang = e.target.value;
   localStorage.setItem('spoke_lang', currentLang);
   setLanguage(currentLang);
 });
 
-darkToggle.addEventListener('click', ()=>{
-  darkMode = darkMode==='dark'?'light':'dark';
+darkToggle.addEventListener('click', () => {
+  darkMode = darkMode === 'dark' ? 'light' : 'dark';
   document.documentElement.setAttribute('data-theme', darkMode);
   localStorage.setItem('darkMode', darkMode);
 });
 
 // --- Presets ---
-savePresetBtn.addEventListener('click', ()=>{
+savePresetBtn.addEventListener('click', () => {
   const name = prompt(LANG[currentLang].promptPresetName);
-  if(!name) return;
+  if (!name) return;
   const preset = {
     name,
     length: document.getElementById('length').value,
@@ -131,18 +110,18 @@ savePresetBtn.addEventListener('click', ()=>{
   presetSelect.value = presets.length - 1; // auto-select new preset
 });
 
-deletePresetBtn.addEventListener('click', ()=>{
+deletePresetBtn.addEventListener('click', () => {
   const idx = presetSelect.value;
-  if(idx === null || idx === undefined) return;
-  presets.splice(idx,1);
+  if (idx === null || idx === undefined) return;
+  presets.splice(idx, 1);
   localStorage.setItem(PRESETS_KEY, JSON.stringify(presets));
   presets = loadPresets();
 });
 
 // --- Preset select change ---
-presetSelect.addEventListener('change', e=>{
+presetSelect.addEventListener('change', e => {
   const preset = presets[e.target.value];
-  if(!preset) return;
+  if (!preset) return;
   document.getElementById('length').value = preset.length;
   document.getElementById('diameter').value = preset.diameter;
   document.getElementById('duration').value = preset.duration;
@@ -154,10 +133,10 @@ presetSelect.addEventListener('change', e=>{
 let audioContext, mediaStream, analyser;
 let samples = [];
 
-async function initMic(){
-  if(!audioContext){
+async function initMic() {
+  if (!audioContext) {
     audioContext = new (window.AudioContext || window.webkitAudioContext)();
-    mediaStream = await navigator.mediaDevices.getUserMedia({audio:true});
+    mediaStream = await navigator.mediaDevices.getUserMedia({ audio: true });
     const source = audioContext.createMediaStreamSource(mediaStream);
     analyser = audioContext.createAnalyser();
     analyser.fftSize = 2048;
@@ -165,19 +144,19 @@ async function initMic(){
   }
 }
 
-function getFrequency(){
+function getFrequency() {
   const bufferLength = analyser.fftSize;
   const dataArray = new Float32Array(bufferLength);
   analyser.getFloatTimeDomainData(dataArray);
   let crossings = 0;
-  for(let i=1;i<bufferLength;i++){
-    if((dataArray[i-1]<0 && dataArray[i]>=0)||(dataArray[i-1]>0 && dataArray[i]<=0)) crossings++;
+  for (let i = 1; i < bufferLength; i++) {
+    if ((dataArray[i - 1] < 0 && dataArray[i] >= 0) || (dataArray[i - 1] > 0 && dataArray[i] <= 0)) crossings++;
   }
-  return crossings * audioContext.sampleRate / (2*bufferLength);
+  return crossings * audioContext.sampleRate / (2 * bufferLength);
 }
 
-measureBtn.addEventListener('click', async ()=>{
-  statusEl.textContent = `Status: ${LANG[currentLang].statusRecording}`;
+measureBtn.addEventListener('click', async () => {
+  statusEl.textContent = `${LANG[currentLang].status}: ${LANG[currentLang].statusRecording}`;
   await initMic();
   samples = [];
 
@@ -206,7 +185,7 @@ measureBtn.addEventListener('click', async ()=>{
     audioContext = null;
     mediaStream = null;
     analyser = null;
-    statusEl.textContent = `Status: ${LANG[currentLang].statusReady}`;
+    statusEl.textContent = `${LANG[currentLang].status}: ${LANG[currentLang].statusReady}`;
     return;
   }
 
@@ -235,19 +214,19 @@ measureBtn.addEventListener('click', async ()=>{
   mediaStream = null;
   analyser = null;
 
-  saveBtn.disabled = false;
-  statusEl.textContent = `Status: ${LANG[currentLang].statusReady}`;
+  // saveBtn.disabled = false;
+  statusEl.textContent = `${LANG[currentLang].status}: ${LANG[currentLang].statusReady}`;
 });
 
 // --- Table & Save ---
 let tableData = [];
 
-function renderTable(){
-  tableBody.innerHTML='';
-  tableData.forEach((row,i)=>{
+function renderTable() {
+  tableBody.innerHTML = '';
+  tableData.forEach((row, i) => {
     const tr = document.createElement('tr');
     tr.innerHTML = `
-      <td data-label="${LANG[currentLang].colIndex}">${i+1}</td>
+      <td data-label="${LANG[currentLang].colIndex}">${i + 1}</td>
       <td data-label="${LANG[currentLang].colFreq}">${row.freq}</td>
       <td data-label="${LANG[currentLang].colTension}">${row.tension}</td>
       <td data-label="${LANG[currentLang].colMaterial}">${row.material}</td>
@@ -260,34 +239,34 @@ function renderTable(){
     `;
     tableBody.appendChild(tr);
 
-    tr.querySelector('.deleteRowBtn').addEventListener('click', ()=>{
-      tableData.splice(i,1);
+    tr.querySelector('.deleteRowBtn').addEventListener('click', () => {
+      tableData.splice(i, 1);
       renderTable();
     });
   });
 }
 
-saveBtn.addEventListener('click', ()=>{
-  tableData.push({
-    freq: document.getElementById('freq').textContent,
-    tension: document.getElementById('tension').textContent,
-    material: materialSelect.options[materialSelect.selectedIndex].text,
-    length: document.getElementById('length').value,
-    diameter: document.getElementById('diameter').value,
-    timestamp: new Date().toLocaleString()
-  });
-  renderTable();
+// saveBtn.addEventListener('click', () => {
+//   tableData.push({
+//     freq: document.getElementById('freq').textContent,
+//     tension: document.getElementById('tension').textContent,
+//     material: materialSelect.options[materialSelect.selectedIndex].text,
+//     length: document.getElementById('length').value,
+//     diameter: document.getElementById('diameter').value,
+//     timestamp: new Date().toLocaleString()
+//   });
+//   renderTable();
 
-  // Clear measurement results
-  document.getElementById('freq').textContent = '';
-  document.getElementById('tension').textContent = '';
-  document.getElementById('samples').textContent = '';
-  document.getElementById('stdev').textContent = '';
-  saveBtn.disabled = true;
-});
+//   // Clear measurement results
+//   document.getElementById('freq').textContent = '-- Hz';
+//   document.getElementById('tension').textContent = '0 kgf';
+//   document.getElementById('samples').textContent = '0';
+//   document.getElementById('stdev').textContent = '--';
+//   saveBtn.disabled = true;
+// });
 
-exportBtn.addEventListener('click', ()=>{
-  if(!tableData.length) return;
+exportBtn.addEventListener('click', () => {
+  if (!tableData.length) return;
   const csv = [
     [
       LANG[currentLang].colIndex,
@@ -298,20 +277,20 @@ exportBtn.addEventListener('click', ()=>{
       LANG[currentLang].colDiameter,
       LANG[currentLang].colTimestamp
     ],
-    ...tableData.map((r,i)=>[i+1,r.freq,r.tension,r.material,r.length,r.diameter,r.timestamp])
-  ].map(r=>r.join(',')).join('\n');
+    ...tableData.map((r, i) => [i + 1, r.freq, r.tension, r.material, r.length, r.diameter, r.timestamp])
+  ].map(r => r.join(',')).join('\n');
 
-  const blob = new Blob([csv], {type:'text/csv'});
+  const blob = new Blob([csv], { type: 'text/csv' });
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
-  a.href=url;
-  a.download='spoke_measurements.csv';
+  a.href = url;
+  a.download = 'spoke_measurements.csv';
   a.click();
   URL.revokeObjectURL(url);
 });
 
-clearBtn.addEventListener('click', ()=>{
-  tableData=[];
+clearBtn.addEventListener('click', () => {
+  tableData = [];
   renderTable();
 });
 

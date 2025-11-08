@@ -11,14 +11,34 @@
 
 /* Dark mode variables */
 [data-theme="dark"] {
-    --bg: #1e1e2f;
+    --bg: #191921;
     --card: #2a2a3b;
     --text: #f5f5f5;
     --muted: #a0a0b0;
     --accent: #0b84ff;
     --success: #0b8a3e;
-    --danger: #d9534f;
+    --danger: #8b2521;
     --glass: rgba(11, 132, 255, 0.15);
+
+    select, input {
+        background-color: var(--card);
+        color: var(--text);
+    }
+
+    button {
+        background-color: #383882;
+        color: var(--text);
+        border: 1px solid #e6e9ef;
+    }
+
+    th {
+        background: var(--bg);
+        border-bottom-color: #111;
+    }
+}
+
+.d-none {
+    display: none;
 }
 
 * {
@@ -65,7 +85,7 @@ small {
 
 .grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    grid-template-columns: repeat(3, minmax(150px, 1fr));
     gap: 12px;
 }
 
@@ -145,7 +165,7 @@ th {
 
 .actions {
     grid-column: 1/-1;
-    margin-bottom: .5rem;
+    margin: .5rem 0;
 }
 
 .actions div {
@@ -169,7 +189,7 @@ th {
 
 @media(max-width: 760px) {
     .grid {
-        grid-template-columns: 1fr;
+        grid-template-columns: repeat(2, minmax(150px, 1fr));
     }
 
     .pill {
@@ -214,4 +234,13 @@ th {
         gap: 12px;
         margin-top: 12px;
     }
+}
+
+.preset-layout {
+    display: flex;
+    gap: .5rem;
+}
+
+.preset-layout button {
+    text-wrap: nowrap;
 }

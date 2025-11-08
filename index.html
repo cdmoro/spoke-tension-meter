@@ -4,15 +4,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="icon" type="image/x-icon" href="./favicon.ico">
     <title>Spoke Tension Meter</title>
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="./style.css">
 </head>
 
 <body>
     <div class="wrap">
         <header>
             <div>
-                <h1>Spoke Tension Meter</h1>
+                <h1 data-string="title">Spoke Tension Meter</h1>
                 <small id="status">Status: --</small>
             </div>
             <div class="header-actions">
@@ -35,7 +36,7 @@
                     <input id="diameter" type="number" value="2.0" min="0.5" step="0.1">
                 </div>
                 <div>
-                    <label for="material">Material</label>
+                    <label for="material" data-string="material">Material</label>
                     <select id="material"></select>
                 </div>
                 <div>
@@ -46,62 +47,66 @@
                     <label for="calibration">Calibration Factor</label>
                     <input id="calibration" type="number" value="1.0" min="0.5" step="0.01">
                 </div>
-                <div class="actions">
-                    <label>Actions</label>
-                    <div>
-                        <button id="measureBtn"></button>
-                        <button id="saveBtn" class="secondary" disabled></button>
-                        <button id="exportBtn" class="secondary"></button>
-                        <button id="savePresetBtn" class="secondary"></button>
-                        <button id="deletePresetBtn" class="secondary"></button>
-                    </div>
-                </div>
             </div>
 
-            <label for="presetSelect" id="presetsLabel"></label>
-            <select id="presetSelect"></select>
+            <div class="actions">
+                    <label data-string="actions">Actions</label>
+                    <div>
+                        <button id="measureBtn" data-string="measure"></button>
+                        <!-- <button id="saveBtn" class="secondary" data-string="save" disabled></button> -->
+                    </div>
+                </div>
+
+            <label for="presetSelect" id="presetsLabel" data-string="presets"></label>
+            <div class="preset-layout">
+                <select id="presetSelect"></select>
+                <button id="savePresetBtn" class="secondary" data-string="savePreset"></button>
+                    <button id="deletePresetBtn" class="secondary" data-string="deletePreset"></button>
+            </div>
 
             <div class="result-row">
                 <div class="pill">
-                    <div id="freqLabel"></div>
+                    <div id="freqLabel" data-string="freq"></div>
                     <div id="freq">-- Hz</div>
                 </div>
                 <div class="pill">
-                    <div id="tensionLabel"></div>
+                    <div id="tensionLabel" data-string="tension"></div>
                     <div id="tension">-- kgf</div>
                 </div>
                 <div class="pill">
-                    <div id="samplesLabel"></div>
+                    <div id="samplesLabel" data-string="samples"></div>
                     <div id="samples">0</div>
                 </div>
                 <div class="pill">
-                    <div id="deviationLabel"></div>
+                    <div id="deviationLabel" data-string="deviation"></div>
                     <div id="stdev">--</div>
                 </div>
             </div>
         </div>
 
-        <div class="card">
-            <label>Results</label>
+        <div class="card d-none" id="lastMeasures">
+            <label data-string="results">Results</label>
+            <button id="exportBtn" class="secondary" data-string="export"></button>
             <table>
                 <thead>
                     <tr>
-                        <th>#</th>
-                        <th>Freq (Hz)</th>
-                        <th>Tension (kgf)</th>
-                        <th>Material</th>
-                        <th>Length</th>
-                        <th>Diameter</th>
-                        <th>Timestamp</th>
+                        <th data-string="colIndex">#</th>
+                        <th data-string="colFreq">Freq (Hz)</th>
+                        <th data-string="colTension">Tension (kgf)</th>
+                        <th data-string="colMaterial">Material</th>
+                        <th data-string="colLength">Length</th>
+                        <th data-string="colDiameter">Diameter</th>
+                        <th data-string="colTimestamp">Timestamp</th>
+                        <th data-string="colActions">Actions</th>
                     </tr>
                 </thead>
                 <tbody id="tableBody"></tbody>
             </table>
-            <button id="clearBtn" class="danger"></button>
+            <button id="clearBtn" class="danger" data-string="clearTable"></button>
         </div>
     </div>
 
-    <script type="module" src="main.js"></script>
+    <script type="module" src="./main.js"></script>
 </body>
 
 </html>
